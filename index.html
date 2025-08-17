@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動式數位行銷趨勢分析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals with Subtle Accents -->
+    <!-- Application Structure Plan: The application is designed as a single-page interactive dashboard, moving away from the linear structure of the source report. It's organized into three thematic sections: 1) "The Shifting Landscape" to visualize the core problems (rising costs, declining engagement), 2) "The Three Waves of Transformation" as the interactive core, allowing users to explore each trend (Experience, AI, Decentralization) in a non-linear way, and 3) "Marketer's Survival Guide" for actionable takeaways. This structure was chosen to make complex, interconnected ideas easily digestible and explorable, allowing users to navigate based on their interests rather than a predefined order, thus enhancing usability and comprehension. -->
+    <!-- Visualization & Content Choices: 1. Ad Cost vs. Engagement: Goal=Compare. Viz=Dual-axis combo chart (bar for cost, line for CTR). Interaction=Tooltips on hover. Justification=Clearly shows the inverse correlation. Library=Chart.js. 2. Ad Blocker Growth: Goal=Show Change. Viz=Line chart. Interaction=Tooltips. Justification=Effectively visualizes the rapid increase over time. Library=Chart.js. 3. AI's Impact on Search: Goal=Inform. Viz=Donut chart showing traffic reduction. Interaction=Tooltips. Justification=Simple, impactful way to represent a key statistic. Library=Chart.js. 4. Three Waves & Survival Guide: Goal=Organize & Inform. Presentation=Interactive cards/tabs using HTML/CSS/Tailwind. Interaction=Click to reveal detailed content. Justification=Allows users to self-direct their learning and breaks down dense text into manageable chunks. Method=Vanilla JS + Tailwind CSS. 5. Content Rephrasing Tool (Gemini API): Goal=Empowerment/Utility. Presentation=Text input, dropdown for style, button, output area. Interaction=User input, select style, click to generate content via LLM. Justification=Directly addresses the "content transliteration" and "AI agent-driven personalization" aspects of the report, providing a practical AI-powered utility. Library=Gemini API (fetch). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: #A67B5B;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .wave-tab.active {
+            border-color: #A67B5B;
+            background-color: #F5EFE6;
+        }
+        .wave-content {
+            display: none;
+        }
+        .wave-content.active {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #A67B5B;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#4A4A4A] mb-4">駕馭新數位行銷浪潮</h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">一份給行銷人的互動式生存地圖，解析市場變革並提供未來策略。</p>
+        </header>
+
+        <nav class="flex justify-center mb-12 bg-white p-2 rounded-full shadow-md sticky top-4 z-10">
+            <button data-target="challenges" class="nav-button active px-4 py-2 md:px-6 rounded-full text-gray-700">核心挑戰</button>
+            <button data-target="waves" class="nav-button px-4 py-2 md:px-6 rounded-full text-gray-700">三大浪潮</button>
+            <button data-target="strategy" class="nav-button px-4 py-2 md:px-6 rounded-full text-gray-700">生存策略</button>
+        </nav>
+
+        <main>
+            <section id="challenges" class="content-section active">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-[#A67B5B] mb-2">不斷演變的格局</h2>
+                    <p class="text-md text-gray-600 max-w-2xl mx-auto">傳統的數位廣告規則正在被改寫。不斷上升的成本、下降的參與度以及新技術的衝擊，正共同侵蝕著過去的成功模式，這份數據儀表板將揭示行銷人當前面臨的嚴峻現實。</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 items-start">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-1 text-center">廣告成本 vs. 點擊率</h3>
+                        <p class="text-sm text-gray-500 mb-4 text-center">過去三年，廣告成本顯著上升，但用戶的點擊意願卻持續下滑。</p>
+                        <div class="chart-container h-64 md:h-80">
+                            <canvas id="costVsCtrChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-1 text-center">廣告攔截工具的興起</h3>
+                        <p class="text-sm text-gray-500 mb-4 text-center">消費者對干擾式廣告的容忍度越來越低，廣告攔截工具安裝量激增。</p>
+                         <div class="chart-container h-64 md:h-80">
+                            <canvas id="adBlockerChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row items-center gap-6">
+                        <div class="w-full md:w-1/2">
+                            <h3 class="text-xl font-bold mb-1 text-center md:text-left">AI 對搜尋流量的衝擊</h3>
+                            <p class="text-sm text-gray-500 mb-4 text-center md:text-left">Gartner 預測，到 2028 年，AI 摘要可能導致品牌自然網站流量減少 50% 或更多，用戶在搜尋結果頁就完成決策。</p>
+                        </div>
+                        <div class="w-full md:w-1/2 chart-container h-64 md:h-80">
+                            <canvas id="aiImpactChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="waves" class="content-section">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-[#A67B5B] mb-2">三大轉型浪潮</h2>
+                    <p class="text-md text-gray-600 max-w-2xl mx-auto">焦慮的背後是巨大的機遇。三股強大的趨勢正匯流成一股不可逆的浪潮，徹底重塑行銷的樣貌。點擊下方的標籤，探索每一股浪潮的核心內涵與應對之道。</p>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 mb-8">
+                    <button data-wave="experience" class="wave-tab active border-b-4 text-lg font-semibold p-4 rounded-t-lg">🌊 體驗經濟</button>
+                    <button data-wave="ai" class="wave-tab border-b-4 border-transparent text-lg font-semibold p-4 rounded-t-lg">🤖 AI 超個人化</button>
+                    <button data-wave="eco" class="wave-tab border-b-4 border-transparent text-lg font-semibold p-4 rounded-t-lg">🌐 生態分散化</button>
+                </div>
+
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg min-h-[400px]">
+                    <div id="experience" class="wave-content active">
+                        <h3 class="text-2xl font-bold mb-4">從廣告投放到體驗經濟</h3>
+                        <p class="mb-4">人們不再滿足於被單向推銷，他們渴望參與感和沉浸感。未來的品牌不只是賣產品，更是設計一場引人入勝的旅程，讓顧客自己走進來，甚至主動分享。這意味著行銷的重點必須從搶佔版位轉向創造價值。</p>
+                        <div class="grid md:grid-cols-3 gap-4 text-center">
+                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
+                                <div class="text-4xl mb-2">🎭</div>
+                                <h4 class="font-bold">沉浸式內容</h4>
+                                <p class="text-sm">透過 AR/VR、遊戲化互動，創造難忘的品牌體驗，將廣告融入內容。</p>
+                            </div>
+                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
+                                <div class="text-4xl mb-2">🤝</div>
+                                <h4 class="font-bold">品牌社群</h4>
+                                <p class="text-sm">建立活躍的社群，培養歸屬感與共同熱情，讓顧客成為品牌擁護者。</p>
+                            </div>
+                             <div class="bg-[#F5EFE6] p-4 rounded-lg">
+                                <div class="text-4xl mb-2">💡</div>
+                                <h4 class="font-bold">價值交換</h4>
+                                <p class="text-sm">提供真正有用的內容或工具，建立信任，而非僅僅要求購買。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="ai" class="wave-content">
+                        <h3 class="text-2xl font-bold mb-4">AI 代理驅動的超個人化與預測式行銷</h3>
+                        <p class="mb-4">未來的品牌可以在顧客意識到需求前，就預測他們的需求，並即時送上最合適的內容或產品。這讓行銷變得極度精準，但也對信任與隱私提出了前所未有的挑戰。</p>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
+                                <h4 class="font-bold">🎯 預測式分析</h4>
+                                <p class="text-sm">利用 AI 分析大量數據，預測用戶行為與需求，實現主動式行銷。</p>
+                            </div>
+                             <div class="bg-[#F5EFE6] p-4 rounded-lg">
+                                <h4 class="font-bold">🔒 信任與隱私</h4>
+                                <p class="text-sm">關鍵在於尊重使用者的選擇權，透明化數據使用，建立基於許可的信任關係。</p>
+                            </div>
+                             <div class="bg-[#F5EFE6] p-4 rounded-lg md:col-span-2">
+                                <h4 class="font-bold">🤖 對話式介面</h4>
+                                <p class="text-sm">行銷的對話主體將從個人轉向 AI 平台。品牌需要優化內容，使其能被 AI 理解並推薦，進入新的「答案空間」。</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-8 border-t border-gray-200">
+                            <h3 class="text-2xl font-bold mb-4">✨ 內容轉譯助手 ✨</h3>
+                            <p class="text-gray-600 mb-4">輸入您的行銷文案，選擇目標平台，讓 AI 幫您快速生成優化內容！</p>
+                            <textarea id="marketingContentInput" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-[#A67B5B]" rows="6" placeholder="請輸入您的原始行銷文案..."></textarea>
+                            <div class="flex flex-col md:flex-row items-center gap-4 mb-4">
+                                <select id="targetPlatformSelect" class="w-full md:w-1/2 p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#A67B5B]">
+                                    <option value="social_media">社群媒體貼文 (簡潔、有影響力)</option>
+                                    <option value="email_draft">電子郵件草稿 (正式、資訊豐富)</option>
+                                    <option value="blog_post">部落格文章段落 (深入、引人入勝)</option>
+                                    <option value="concise_summary">簡潔重點 (摘要)</option>
+                                </select>
+                                <button id="generateContentBtn" class="w-full md:w-1/2 bg-[#A67B5B] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-[#8B644A] transition-colors duration-300 flex items-center justify-center">
+                                    生成優化內容 ✨
+                                </button>
+                            </div>
+                            <div id="loadingSpinner" class="flex justify-center items-center mt-4 hidden">
+                                <div class="spinner"></div>
+                                <span class="ml-3 text-gray-600">AI 正在思考中...</span>
+                            </div>
+                            <div id="generatedContentOutput" class="bg-[#F5EFE6] p-4 rounded-lg mt-4 hidden">
+                                <h4 class="font-bold text-lg mb-2">生成內容：</h4>
+                                <textarea id="generatedContentTextarea" class="w-full p-2 bg-transparent border-none focus:outline-none resize-none" rows="10" readonly></textarea>
+                                <button id="copyToClipboardBtn" class="mt-2 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-300 text-sm">複製到剪貼簿</button>
+                            </div>
+                             <div id="errorDisplay" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mt-4 hidden" role="alert">
+                                <strong class="font-bold">錯誤！</strong>
+                                <span class="block sm:inline" id="errorMessage"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="eco" class="wave-content">
+                        <h3 class="text-2xl font-bold mb-4">平台中心化的弱化與生態分散化</h3>
+                        <p class="mb-4">過去，品牌爭相在 FB、IG 等大平台投放廣告，仰賴演算法給流量。未來，這種依賴將越來越危險，因為演算法一改，觸及就可能瞬間砍半。品牌必須建立自己的護城河。</p>
+                         <div class="grid md:grid-cols-3 gap-4 text-center">
+                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
+                                <div class="text-4xl mb-2">🏰</div>
+                                <h4 class="font-bold">建立私域資產</h4>
+                                <p class="text-sm">經營電子報、會員系統、專屬社群，將觸達權掌握在自己手上。</p>
+                            </div>
+                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
+                                <div class="text-4xl mb-2">🔄</div>
+                                <h4 class="font-bold">多平台經營</h4>
+                                <p class="text-sm">分散風險，在不同平台使用不同語言溝通，而非簡單複製貼上。</p>
+                            </div>
+                             <div class="bg-[#F5EFE6] p-4 rounded-lg">
+                                <div class="text-4xl mb-2">📜</div>
+                                <h4 class="font-bold">內容轉譯</h4>
+                                <p class="text-sm">針對不同媒介特性，將核心訊息「翻譯」成短影音、長文、Podcast 等不同形式。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="strategy" class="content-section">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-[#A67B5B] mb-2">行銷人的生存地圖</h2>
+                    <p class="text-md text-gray-600 max-w-2xl mx-auto">總結來說，行銷的戰場已截然不同。留下來的，不會是花最多錢的人，而是懂得經營生態、適應變化的人。以下是三大核心策略建議，幫助您在未來五年穩定前行。</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white p-8 rounded-2xl shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                        <div class="text-5xl mb-4">👑</div>
+                        <h3 class="text-xl font-bold mb-2">別做平台的奴隸，要做關係的主人</h3>
+                        <p class="text-gray-600">演算法是別人的，顧客關係才是你的。優先經營可轉移的私域資產（如電子報、會員），確保你的觸達能力不會因平台變動而消失。</p>
+                    </div>
+                     <div class="bg-white p-8 rounded-2xl shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                        <div class="text-5xl mb-4">🗣️</div>
+                        <h3 class="text-xl font-bold mb-2">學會內容轉譯，而不是內容複製</h3>
+                        <p class="text-gray-600">每個媒介都有自己的語言。學會用短影音講故事，也要會用長文深入對話。讓你的訊息在任何場景都有效，與潛在用戶產生共鳴。</p>
+                    </div>
+                     <div class="bg-white p-8 rounded-2xl shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                        <div class="text-5xl mb-4">📊</div>
+                        <h3 class="text-xl font-bold mb-2">用數據與工具決策，而非憑直覺</h3>
+                        <p class="text-gray-600">學會用數據追蹤成效，熟悉能省時省力的數位工具。讓你的決策有憑有據，快速測試、快速調整，善用新工具應對變化。</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-16 pt-8 border-t border-gray-200">
+            <p class="text-gray-500">這份互動式報告旨在將複雜的市場趨勢轉化為清晰的洞察與策略。</p>
+            <p class="text-sm text-gray-400 mt-2">資料來源：好廣告數據市場觀察報告</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const navButtons = document.querySelectorAll('.nav-button');
+            const contentSections = document.querySelectorAll('.content-section');
+            const waveTabs = document.querySelectorAll('.wave-tab');
+            const waveContents = document.querySelectorAll('.wave-content');
+
+            // Gemini API elements
+            const marketingContentInput = document.getElementById('marketingContentInput');
+            const targetPlatformSelect = document.getElementById('targetPlatformSelect');
+            const generateContentBtn = document.getElementById('generateContentBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const generatedContentOutput = document.getElementById('generatedContentOutput');
+            const generatedContentTextarea = document.getElementById('generatedContentTextarea');
+            const copyToClipboardBtn = document.getElementById('copyToClipboardBtn');
+            const errorDisplay = document.getElementById('errorDisplay');
+            const errorMessage = document.getElementById('errorMessage');
+
+
+            const chartFontColor = '#4A4A4A';
+
+            function wrapText(text, maxLen) {
+                if (typeof text !== 'string') return [text];
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach(word => {
+                    if ((currentLine + word).length > maxLen) {
+                        lines.push(currentLine.trim());
+                        currentLine = '';
+                    }
+                    currentLine += word + ' ';
+                });
+                lines.push(currentLine.trim());
+                return lines;
+            }
+
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: chartFontColor,
+                            font: {
+                                family: "'Noto Sans TC', sans-serif"
+                            }
+                        }
+                    },
+                    tooltip: {
+                        titleFont: {
+                            family: "'Noto Sans TC', sans-serif"
+                        },
+                        bodyFont: {
+                            family: "'Noto Sans TC', sans-serif"
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: chartFontColor,
+                            font: {
+                                family: "'Noto Sans TC', sans-serif"
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: chartFontColor,
+                            font: {
+                                family: "'Noto Sans TC', sans-serif" // Corrected typo here
+                            }
+                        },
+                         grid: {
+                            color: '#E5E7EB'
+                        }
+                    }
+                }
+            };
+
+            const costVsCtrData = {
+                labels: ['三年前', '兩年前', '一年前', '現在'],
+                datasets: [{
+                    label: '廣告成本指數',
+                    type: 'bar',
+                    data: [100, 115, 130, 140],
+                    backgroundColor: 'rgba(166, 123, 91, 0.6)',
+                    borderColor: 'rgba(166, 123, 91, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                }, {
+                    label: '點擊率指數',
+                    type: 'line',
+                    data: [100, 90, 82, 75],
+                    borderColor: '#6B7280',
+                    backgroundColor: 'rgba(107, 114, 128, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    yAxisID: 'y1'
+                }]
+            };
+
+            new Chart(document.getElementById('costVsCtrChart'), {
+                type: 'bar',
+                data: costVsCtrData,
+                options: { ...chartOptions,
+                    scales: {
+                        ...chartOptions.scales,
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: '成本指數', color: chartFontColor }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: '點擊率指數', color: chartFontColor },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+
+            const adBlockerData = {
+                labels: ['2018', '2020', '2022', '2024'],
+                datasets: [{
+                    label: '全球廣告攔截工具用戶 (億)',
+                    data: [6.15, 7.81, 8.43, 9.12],
+                    borderColor: '#A67B5B',
+                    backgroundColor: 'rgba(166, 123, 91, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            };
+
+            new Chart(document.getElementById('adBlockerChart'), {
+                type: 'line',
+                data: adBlockerData,
+                options: chartOptions
+            });
+            
+            const aiImpactData = {
+                labels: ['來自 AI 摘要的直接答案', '傳統自然搜尋點擊'],
+                datasets: [{
+                    label: '流量來源預測',
+                    data: [50, 50],
+                    backgroundColor: [
+                        'rgba(166, 123, 91, 0.7)',
+                        'rgba(209, 213, 219, 0.7)'
+                    ],
+                    borderColor: [
+                        '#A67B5B',
+                        '#D1D5DB'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            new Chart(document.getElementById('aiImpactChart'), {
+                type: 'doughnut',
+                data: aiImpactData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: chartFontColor,
+                                font: {
+                                    family: "'Noto Sans TC', sans-serif"
+                                },
+                                padding: 20,
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map(function(label, i) {
+                                            const meta = chart.getDatasetMeta(0);
+                                            const style = meta.controller.getStyle(i);
+                                            return {
+                                                text: wrapText(label, 16).join('\n'),
+                                                fillStyle: style.backgroundColor,
+                                                strokeStyle: style.borderColor,
+                                                lineWidth: style.borderWidth,
+                                                hidden: isNaN(data.datasets[0].data[i]) || meta.data[i].hidden,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    contentSections.forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.getElementById(button.dataset.target).classList.add('active');
+                });
+            });
+
+            waveTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    waveTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    waveContents.forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(tab.dataset.wave).classList.add('active');
+                });
+            });
+
+            // Gemini API Integration Logic
+            generateContentBtn.addEventListener('click', async () => {
+                const marketingContent = marketingContentInput.value.trim();
+                const targetPlatform = targetPlatformSelect.value;
+                
+                if (!marketingContent) {
+                    errorMessage.textContent = '請輸入您要轉譯的行銷內容。';
+                    errorDisplay.classList.remove('hidden');
+                    generatedContentOutput.classList.add('hidden');
+                    return;
+                }
+
+                errorDisplay.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+                generatedContentOutput.classList.add('hidden');
+                generatedContentTextarea.value = '';
+
+                let prompt = '';
+                switch (targetPlatform) {
+                    case 'social_media':
+                        prompt = `請將以下行銷內容改寫成一篇簡潔、有吸引力且適合社群媒體（如 Facebook 或 Instagram）的貼文，語氣應當活潑並包含表情符號：\n\n"${marketingContent}"`;
+                        break;
+                    case 'email_draft':
+                        prompt = `請將以下行銷內容改寫成一封正式且資訊豐富的電子郵件草稿，適合發送給潛在客戶或合作夥伴：\n\n"${marketingContent}"`;
+                        break;
+                    case 'blog_post':
+                        prompt = `請將以下行銷內容改寫成一個深入且引人入勝的部落格文章段落，旨在教育讀者並建立品牌信任：\n\n"${marketingContent}"`;
+                        break;
+                    case 'concise_summary':
+                        prompt = `請將以下行銷內容提取出最簡潔的重點摘要：\n\n"${marketingContent}"`;
+                        break;
+                    default:
+                        prompt = `請將以下行銷內容進行優化與改寫：\n\n"${marketingContent}"`;
+                }
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const MAX_RETRIES = 3;
+                let retries = 0;
+                let success = false;
+
+                while (retries < MAX_RETRIES && !success) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+                        
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            generatedContentTextarea.value = text;
+                            generatedContentOutput.classList.remove('hidden');
+                            success = true;
+                        } else {
+                            throw new Error('API 回應結構不符預期或內容缺失。');
+                        }
+                    } catch (error) {
+                        retries++;
+                        if (retries < MAX_RETRIES) {
+                            const delay = Math.pow(2, retries) * 1000; // Exponential backoff
+                            await new Promise(res => setTimeout(res, delay));
+                        } else {
+                            errorMessage.textContent = `生成內容失敗：${error.message}。請稍後再試。`;
+                            errorDisplay.classList.remove('hidden');
+                        }
+                    } finally {
+                        loadingSpinner.classList.add('hidden');
+                    }
+                }
+            });
+
+            // Copy to clipboard functionality
+            copyToClipboardBtn.addEventListener('click', () => {
+                generatedContentTextarea.select();
+                document.execCommand('copy');
+                copyToClipboardBtn.textContent = '已複製！';
+                setTimeout(() => {
+                    copyToClipboardBtn.textContent = '複製到剪貼簿';
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
