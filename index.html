@@ -1,597 +1,1027 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動式數位行銷趨勢分析</title>
+    <title>公眾演說千萬成交影響術</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals with Subtle Accents -->
-    <!-- Application Structure Plan: The application is designed as a single-page interactive dashboard, moving away from the linear structure of the source report. It's organized into three thematic sections: 1) "The Shifting Landscape" to visualize the core problems (rising costs, declining engagement), 2) "The Three Waves of Transformation" as the interactive core, allowing users to explore each trend (Experience, AI, Decentralization) in a non-linear way, and 3) "Marketer's Survival Guide" for actionable takeaways. This structure was chosen to make complex, interconnected ideas easily digestible and explorable, allowing users to navigate based on their interests rather than a predefined order, thus enhancing usability and comprehension. -->
-    <!-- Visualization & Content Choices: 1. Ad Cost vs. Engagement: Goal=Compare. Viz=Dual-axis combo chart (bar for cost, line for CTR). Interaction=Tooltips on hover. Justification=Clearly shows the inverse correlation. Library=Chart.js. 2. Ad Blocker Growth: Goal=Show Change. Viz=Line chart. Interaction=Tooltips. Justification=Effectively visualizes the rapid increase over time. Library=Chart.js. 3. AI's Impact on Search: Goal=Inform. Viz=Donut chart showing traffic reduction. Interaction=Tooltips. Justification=Simple, impactful way to represent a key statistic. Library=Chart.js. 4. Three Waves & Survival Guide: Goal=Organize & Inform. Presentation=Interactive cards/tabs using HTML/CSS/Tailwind. Interaction=Click to reveal detailed content. Justification=Allows users to self-direct their learning and breaks down dense text into manageable chunks. Method=Vanilla JS + Tailwind CSS. 5. Content Rephrasing Tool (Gemini API): Goal=Empowerment/Utility. Presentation=Text input, dropdown for style, button, output area. Interaction=User input, select style, click to generate content via LLM. Justification=Directly addresses the "content transliteration" and "AI agent-driven personalization" aspects of the report, providing a practical AI-powered utility. Library=Gemini API (fetch). -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #FDFBF8;
-            color: #4A4A4A;
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 350px;
-            }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
         }
-        .nav-button {
-            transition: all 0.3s ease;
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
         }
-        .nav-button.active {
-            background-color: #A67B5B;
-            color: #FFFFFF;
-            font-weight: 700;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
-        .content-section {
-            display: none;
+        /* Style for anchor links to prevent content from being hidden by fixed header */
+        .anchor-offset {
+            padding-top: 6rem; /* Adjust this value to match your fixed header height */
+            margin-top: -6rem; /* Negative margin to pull the content back up */
+            display: block; /* Required for the above to work consistently */
         }
-        .content-section.active {
-            display: block;
+        /* Custom subtle float animation for the IP character */
+        @keyframes float-subtle {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
         }
-        .wave-tab.active {
-            border-color: #A67B5B;
-            background-color: #F5EFE6;
-        }
-        .wave-content {
-            display: none;
-        }
-        .wave-content.active {
-            display: block;
-        }
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #A67B5B;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+        .animate-float-subtle {
+            animation: float-subtle 3s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="bg-gray-50 text-gray-800">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
-
-        <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold text-[#4A4A4A] mb-4">駕馭新數位行銷浪潮</h1>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">一份給行銷人的互動式生存地圖，解析市場變革並提供未來策略。</p>
-        </header>
-
-        <nav class="flex justify-center mb-12 bg-white p-2 rounded-full shadow-md sticky top-4 z-10">
-            <button data-target="challenges" class="nav-button active px-4 py-2 md:px-6 rounded-full text-gray-700">核心挑戰</button>
-            <button data-target="waves" class="nav-button px-4 py-2 md:px-6 rounded-full text-gray-700">三大浪潮</button>
-            <button data-target="strategy" class="nav-button px-4 py-2 md:px-6 rounded-full text-gray-700">生存策略</button>
+    <!-- Sticky Navigation Header -->
+    <header class="bg-white shadow-lg fixed w-full top-0 z-50 rounded-b-xl">
+        <nav class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <a href="#" class="text-3xl font-extrabold text-blue-700 tracking-tight mb-3 md:mb-0">FUTURE 500</a>
+            <div class="flex flex-wrap justify-center space-x-4 md:space-x-6 text-lg font-medium">
+                <a href="#day1-overview" class="text-gray-700 hover:text-blue-600 transition duration-300 rounded-lg p-2">Day 1 總覽</a>
+                <a href="#day2-overview" class="text-gray-700 hover:text-blue-600 transition duration-300 rounded-lg p-2">Day 2 總覽</a>
+                <a href="#mindset-application" class="text-gray-700 hover:text-blue-600 transition duration-300 rounded-lg p-2">思維落地</a>
+            </div>
         </nav>
+    </header>
 
-        <main>
-            <section id="challenges" class="content-section active">
-                <div class="text-center mb-10">
-                    <h2 class="text-3xl font-bold text-[#A67B5B] mb-2">不斷演變的格局</h2>
-                    <p class="text-md text-gray-600 max-w-2xl mx-auto">傳統的數位廣告規則正在被改寫。不斷上升的成本、下降的參與度以及新技術的衝擊，正共同侵蝕著過去的成功模式，這份數據儀表板將揭示行銷人當前面臨的嚴峻現實。</p>
-                </div>
-                <div class="grid md:grid-cols-2 gap-8 items-start">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-xl font-bold mb-1 text-center">廣告成本 vs. 點擊率</h3>
-                        <p class="text-sm text-gray-500 mb-4 text-center">過去三年，廣告成本顯著上升，但用戶的點擊意願卻持續下滑。</p>
-                        <div class="chart-container h-64 md:h-80">
-                            <canvas id="costVsCtrChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-xl font-bold mb-1 text-center">廣告攔截工具的興起</h3>
-                        <p class="text-sm text-gray-500 mb-4 text-center">消費者對干擾式廣告的容忍度越來越低，廣告攔截工具安裝量激增。</p>
-                         <div class="chart-container h-64 md:h-80">
-                            <canvas id="adBlockerChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row items-center gap-6">
-                        <div class="w-full md:w-1/2">
-                            <h3 class="text-xl font-bold mb-1 text-center md:text-left">AI 對搜尋流量的衝擊</h3>
-                            <p class="text-sm text-gray-500 mb-4 text-center md:text-left">Gartner 預測，到 2028 年，AI 摘要可能導致品牌自然網站流量減少 50% 或更多，用戶在搜尋結果頁就完成決策。</p>
-                        </div>
-                        <div class="w-full md:w-1/2 chart-container h-64 md:h-80">
-                            <canvas id="aiImpactChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </section>
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-24 md:py-32 overflow-hidden rounded-b-3xl">
+        <div class="container mx-auto px-6 text-center z-10 relative">
+            <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6 animate-fade-in-up">
+                公眾演說千萬成交影響術
+            </h1>
+            <p class="text-xl md:text-2xl mb-10 max-w-3xl mx-auto opacity-90 animate-fade-in-up delay-200">
+                掌握演說力量，驅動商業成長，解鎖品牌價值！
+            </p>
+            <a href="#day1-overview" class="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold py-4 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105 inline-block text-xl">
+                立即探索課程精華
+            </a>
+        </div>
+        <!-- 背景裝飾元素 -->
+        <div class="absolute inset-0 z-0 opacity-10">
+            <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full mix-blend-overlay animate-float"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full mix-blend-overlay animate-float animation-delay-500"></div>
+        </div>
+    </section>
 
-            <section id="waves" class="content-section">
-                <div class="text-center mb-10">
-                    <h2 class="text-3xl font-bold text-[#A67B5B] mb-2">三大轉型浪潮</h2>
-                    <p class="text-md text-gray-600 max-w-2xl mx-auto">焦慮的背後是巨大的機遇。三股強大的趨勢正匯流成一股不可逆的浪潮，徹底重塑行銷的樣貌。點擊下方的標籤，探索每一股浪潮的核心內涵與應對之道。</p>
+    <main class="container mx-auto px-4 py-12 md:py-16 mt-8">
+
+        <!-- Day 1 Content -->
+        <section id="day1-overview" class="bg-white shadow-xl rounded-2xl p-8 md:p-12 mb-12">
+            <span class="anchor-offset" id="day1-anchor"></span>
+            <h2 class="text-3xl sm:text-4xl font-bold text-blue-700 mb-8 pb-4 border-b-4 border-blue-200">
+                Day 1 上午：演說驅動商業模式
+            </h2>
+
+            <!-- Section 1: 未來 500 強思維 -->
+            <div class="mb-10 p-6 bg-blue-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section1-day1"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-blue-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/60A5FA/FFFFFF?text=💡" alt="Lightbulb icon" class="mr-3">
+                    一、未來 500 強思維：你不一定要上市，但要有上市的思維
+                </h3>
+                <p class="text-lg sm:text-xl font-medium text-gray-700 mb-4">核心觀念：</p>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>公司要能「自動運轉」──不依賴單一個人。</li>
+                    <li>上市、出海不是必須，但要有資格選擇。</li>
+                    <li>擁有「<span class="font-semibold text-blue-800">可預測性、可複製性、可投放性</span>」的系統，才能持續成長。</li>
+                </ul>
+                <p class="text-lg sm:text-xl font-medium text-gray-700 mt-6 mb-3">啟發案例：米其林指南</p>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>本質不是做美食，而是讓人開車更遠 → 輪胎使用率增加。</li>
+                    <li><span class="font-semibold text-blue-800">倒果為因</span>：透過改變使用情境，讓目標受眾自然增加需求。</li>
+                    <li>啟示：思考如何拆解顧客行為，創造更多使用場景。</li>
+                </ul>
+            </div>
+
+            <!-- Section 2: 商業模式與品牌定位 -->
+            <div class="mb-10 p-6 bg-green-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section2-day1"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-green-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/34D399/FFFFFF?text=🎯" alt="Target icon" class="mr-3">
+                    二、商業模式與品牌定位
+                </h3>
+                <p class="text-lg sm:text-xl font-medium text-gray-700 mb-4">聚焦但要有定位：</p>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>沒有定位，就只是雜亂的生意。</li>
+                    <li>領頭羊的差異：不是產品最好，而是「<span class="font-semibold text-green-800">讓人第一個想到你</span>」。</li>
+                    <li>甜點案例：建立品牌目的＝「大家買甜點就會想到 Kiwimu」。</li>
+                </ul>
+                <p class="text-lg sm:text-xl font-medium text-gray-700 mt-6 mb-3">最好的商業模式：</p>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>可系統化、可擴大。</li>
+                    <li>能被不同人複製，而不是依靠個人天賦。</li>
+                </ul>
+                <p class="text-lg sm:text-xl font-medium text-gray-700 mt-6 mb-3">三個關鍵角色（每個企業必備）：</p>
+                <ol class="list-decimal pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>做產品／服務／內容的人。</li>
+                    <li>領域專家（能解決問題、建立信任）。</li>
+                    <li>把東西賣出去的人（懂市場與商業模式）。</li>
+                </ol>
+            </div>
+
+            <!-- Section 3: 三大核心技能：流量 → 銷售 → 產品／服務 -->
+            <div class="mb-10 p-6 bg-yellow-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section3-day1"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-yellow-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/FCD34D/FFFFFF?text=⚙️" alt="Gear icon" class="mr-3">
+                    三、三大核心技能：流量 → 銷售 → 產品／服務
+                </h3>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-yellow-700 mb-3">1. 流量（Traffic）</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>觸及 → 名單 → 聯絡方式</li>
+                        <li>原則：一定要留下名單，就算當下沒成交，也能未來轉化。</li>
+                        <li>工具：廣告投放、A/B 測試、漏斗設計。</li>
+                        <li>指標：
+                            <ul class="list-circle pl-6">
+                                <li>CPC（點擊成本）</li>
+                                <li>名單獲取率（CF 30%、EB 50%為標準）</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-yellow-700 mb-3">2. 銷售（Sales）</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>關鍵在於「<span class="font-semibold text-yellow-800">轉換率</span>」。</li>
+                        <li>演講、簡報、訪談：讓客戶快速理解價值。</li>
+                        <li>消費者心理：專業≠成交，必須找到他們的「行動動機」。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xl sm:text-2xl font-medium text-yellow-700 mb-3">3. 產品／服務（Product/Service）</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>不只是專業，而是「能否被理解、被選擇」。</li>
+                        <li>價值階梯設計：
+                            <ul class="list-circle pl-6">
+                                <li>演說（最高價值影響力）</li>
+                                <li>衍生性產品（延伸體驗）</li>
+                                <li>洞察性產品（透過洞察設計需求）</li>
+                                <li>複製型產品（標準化、擴張用）</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 4: 數據與自動化的力量 -->
+            <div class="mb-10 p-6 bg-purple-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section4-day1"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-purple-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/A78BFA/FFFFFF?text=📊" alt="Chart icon" class="mr-3">
+                    四、數據與自動化的力量
+                </h3>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>客戶獲取成本（CAC）與 名單獲取成本（CPL）是商業判斷基礎。</li>
+                    <li>透過自動化銷售漏斗（行銷工具、系統留言、自動跟進），確保效率。</li>
+                    <li>用數據預測未來，而不是憑感覺。</li>
+                </ul>
+            </div>
+
+            <!-- Section 5: 公眾演說的價值 -->
+            <div class="mb-10 p-6 bg-red-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section5-day1"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-red-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/F87171/FFFFFF?text=🗣️" alt="Speech bubble icon" class="mr-3">
+                    五、公眾演說的價值
+                </h3>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>學會演說 = 掌握媒體影響力。</li>
+                    <li><span class="font-semibold text-red-800">分享 > 販售</span>：透過故事、洞察、教育，讓人「自願加入」。</li>
+                    <li>招不到人，不是因為缺人才，而是你的事業沒有吸引力。</li>
+                </ul>
+            </div>
+
+            <!-- Section 6: 核心心法 -->
+            <div class="mb-10 p-6 bg-blue-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section6-day1"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-blue-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/60A5FA/FFFFFF?text=💖" alt="Heart icon" class="mr-3">
+                    六、核心心法
+                </h3>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>財富不是給予的，而是創造出來的。 → 自由也是一樣，需要主動設計。</li>
+                    <li>心法 / 策略 vs 技術：技術能解決眼前問題，但心法與策略才是可持續成長的根本。</li>
+                    <li>定位優先，專業其次：先讓人認識你、記住你，再來強調專業。</li>
+                </ul>
+            </div>
+
+            <!-- Section 7: 應用與延伸（針對你的品牌 / Kiwimu） -->
+            <div class="mb-10 p-6 bg-orange-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section7-day1"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-orange-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/FB923C/FFFFFF?text=🌟" alt="Star icon" class="mr-3">
+                    七、應用與延伸（針對你的品牌 / Kiwimu）
+                </h3>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-orange-700 mb-3">品牌定位</h4>
+                    <p class="text-base sm:text-lg leading-relaxed text-gray-700">讓消費者一想到「甜點的情感陪伴」，就先想到 Kiwimu。</p>
+                </div>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-orange-700 mb-3">價值階梯規劃</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>頂層：情緒 × 故事的演說課程（甜點結合自我覺察）。</li>
+                        <li>中層：聯名商品、角色體驗（Kiwimu 情緒禮盒）。</li>
+                        <li>底層：標準化的招牌甜點（生日蛋糕、禮物蛋糕）。</li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-orange-700 mb-3">流量策略</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>短影音 + IG/FB 廣告測試 A/B。</li>
+                        <li>每次活動一定要收集名單（LINE、Email）。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xl sm:text-2xl font-medium text-orange-700 mb-3">演說策略</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>將 Kiwimu 的故事變成「品牌演說」：
+                            <ul class="list-circle pl-6">
+                                <li>甜點不是商品，而是「陪伴的情緒體驗」。</li>
+                                <li>讓人從演說 → 共鳴 → 記住 → 消費。</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Day 1 Summary -->
+            <div class="bg-gray-100 p-8 rounded-xl shadow-inner mb-10">
+                <p class="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">👉 總結</p>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-3">
+                    Day1 上午的核心，不是單純學演講，而是學 <span class="font-bold text-blue-700">如何用演說驅動商業模式</span>。
+                </p>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-3">
+                    用演說製造流量與信任 → 引導到銷售 → 最後承接到產品／服務。
+                </p>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-3">
+                    一切以 <span class="font-bold text-blue-700">名單、數據、定位</span> 為基礎。
+                </p>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700">
+                    <span class="font-bold text-blue-700">分享的力量 > 技術的力量</span>。
+                </p>
+            </div>
+
+            <!-- 演講設計藍圖（以終為始） -->
+            <div class="p-6 bg-indigo-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section-design-blueprint"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-indigo-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/818CF8/FFFFFF?text=🎤" alt="Microphone icon" class="mr-3">
+                    🎤 演講設計藍圖（以終為始）
+                </h3>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-indigo-700 mb-3">一、結尾設計（CTA）</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>原則：<span class="font-semibold text-indigo-800">功能 > 功用 > 情緒價值</span></li>
+                        <li>在結尾前，先列出 3 個讓對方得到的好處，語言要能帶動情緒，讓聽眾感覺「非你不可」。</li>
+                    </ul>
+                    <p class="text-xl font-medium text-gray-700 mt-6 mb-3">👉 範例模版：</p>
+                    <div class="bg-white p-4 rounded-lg border border-indigo-200 text-base sm:text-lg mb-4">
+                        <p>「我會提供 功能X → 幫助你 功用X → 讓你 滿足情緒X」</p>
+                        <p>「我會提供 功能Y → 幫助你 功用Y → 讓你 滿足情緒Y」</p>
+                        <p>「我會提供 功能Z → 幫助你 功用Z → 讓你 滿足情緒Z」</p>
+                    </div>
+                    <p class="text-xl font-medium text-gray-700 mt-6 mb-3">範例：</p>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>室內裝修：丈量 → 家人都有舒服的空間；設計製圖 → 先滿足每個人對家的想像；裝潢施工 → 用100萬打造出300萬的價值</li>
+                        <li>音樂教育：師資調度 → 幫你省下30萬師資成本；多元課程 → 招生率提升50%；發表安排 → 曝光度增加，家長信任</li>
+                        <li>企業端合作：代工服務 → 節省3–4千萬成本；包裝設計 → 省掉買包裝機的投資；批量製造 → 沒有庫存壓力</li>
+                    </ul>
                 </div>
 
-                <div class="flex flex-wrap justify-center gap-4 mb-8">
-                    <button data-wave="experience" class="wave-tab active border-b-4 text-lg font-semibold p-4 rounded-t-lg">🌊 體驗經濟</button>
-                    <button data-wave="ai" class="wave-tab border-b-4 border-transparent text-lg font-semibold p-4 rounded-t-lg">🤖 AI 超個人化</button>
-                    <button data-wave="eco" class="wave-tab border-b-4 border-transparent text-lg font-semibold p-4 rounded-t-lg">🌐 生態分散化</button>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-indigo-700 mb-3">二、演講三大框架</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>簡介（收斂）：
+                            <ul class="list-circle pl-6">
+                                <li>開場：一句話交代你是誰、做什麼</li>
+                                <li>不要一開始就「專業術語」，用人話先把結果講出來</li>
+                            </ul>
+                        </li>
+                        <li>主體內容（聚焦）：
+                            <ul class="list-circle pl-6">
+                                <li>把專業轉換成聽眾要的「結果」</li>
+                                <li>功能→功用→情緒價值</li>
+                                <li>透過故事、案例讓聽眾自己投射進來</li>
+                            </ul>
+                        </li>
+                        <li>成交環節（延展）：
+                            <ul class="list-circle pl-6">
+                                <li>重申「三個好處」</li>
+                                <li>CTA：讓聽眾知道「下一步該怎麼做」</li>
+                            </ul>
+                        </li>
+                    </ul>
                 </div>
 
-                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg min-h-[400px]">
-                    <div id="experience" class="wave-content active">
-                        <h3 class="text-2xl font-bold mb-4">從廣告投放到體驗經濟</h3>
-                        <p class="mb-4">人們不再滿足於被單向推銷，他們渴望參與感和沉浸感。未來的品牌不只是賣產品，更是設計一場引人入勝的旅程，讓顧客自己走進來，甚至主動分享。這意味著行銷的重點必須從搶佔版位轉向創造價值。</p>
-                        <div class="grid md:grid-cols-3 gap-4 text-center">
-                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
-                                <div class="text-4xl mb-2">🎭</div>
-                                <h4 class="font-bold">沉浸式內容</h4>
-                                <p class="text-sm">透過 AR/VR、遊戲化互動，創造難忘的品牌體驗，將廣告融入內容。</p>
-                            </div>
-                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
-                                <div class="text-4xl mb-2">🤝</div>
-                                <h4 class="font-bold">品牌社群</h4>
-                                <p class="text-sm">建立活躍的社群，培養歸屬感與共同熱情，讓顧客成為品牌擁護者。</p>
-                            </div>
-                             <div class="bg-[#F5EFE6] p-4 rounded-lg">
-                                <div class="text-4xl mb-2">💡</div>
-                                <h4 class="font-bold">價值交換</h4>
-                                <p class="text-sm">提供真正有用的內容或工具，建立信任，而非僅僅要求購買。</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="ai" class="wave-content">
-                        <h3 class="text-2xl font-bold mb-4">AI 代理驅動的超個人化與預測式行銷</h3>
-                        <p class="mb-4">未來的品牌可以在顧客意識到需求前，就預測他們的需求，並即時送上最合適的內容或產品。這讓行銷變得極度精準，但也對信任與隱私提出了前所未有的挑戰。</p>
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
-                                <h4 class="font-bold">🎯 預測式分析</h4>
-                                <p class="text-sm">利用 AI 分析大量數據，預測用戶行為與需求，實現主動式行銷。</p>
-                            </div>
-                             <div class="bg-[#F5EFE6] p-4 rounded-lg">
-                                <h4 class="font-bold">🔒 信任與隱私</h4>
-                                <p class="text-sm">關鍵在於尊重使用者的選擇權，透明化數據使用，建立基於許可的信任關係。</p>
-                            </div>
-                             <div class="bg-[#F5EFE6] p-4 rounded-lg md:col-span-2">
-                                <h4 class="font-bold">🤖 對話式介面</h4>
-                                <p class="text-sm">行銷的對話主體將從個人轉向 AI 平台。品牌需要優化內容，使其能被 AI 理解並推薦，進入新的「答案空間」。</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 pt-8 border-t border-gray-200">
-                            <h3 class="text-2xl font-bold mb-4">✨ 內容轉譯助手 ✨</h3>
-                            <p class="text-gray-600 mb-4">輸入您的行銷文案，選擇目標平台，讓 AI 幫您快速生成優化內容！</p>
-                            <textarea id="marketingContentInput" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-[#A67B5B]" rows="6" placeholder="請輸入您的原始行銷文案..."></textarea>
-                            <div class="flex flex-col md:flex-row items-center gap-4 mb-4">
-                                <select id="targetPlatformSelect" class="w-full md:w-1/2 p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#A67B5B]">
-                                    <option value="social_media">社群媒體貼文 (簡潔、有影響力)</option>
-                                    <option value="email_draft">電子郵件草稿 (正式、資訊豐富)</option>
-                                    <option value="blog_post">部落格文章段落 (深入、引人入勝)</option>
-                                    <option value="concise_summary">簡潔重點 (摘要)</option>
-                                </select>
-                                <button id="generateContentBtn" class="w-full md:w-1/2 bg-[#A67B5B] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-[#8B644A] transition-colors duration-300 flex items-center justify-center">
-                                    生成優化內容 ✨
-                                </button>
-                            </div>
-                            <div id="loadingSpinner" class="flex justify-center items-center mt-4 hidden">
-                                <div class="spinner"></div>
-                                <span class="ml-3 text-gray-600">AI 正在思考中...</span>
-                            </div>
-                            <div id="generatedContentOutput" class="bg-[#F5EFE6] p-4 rounded-lg mt-4 hidden">
-                                <h4 class="font-bold text-lg mb-2">生成內容：</h4>
-                                <textarea id="generatedContentTextarea" class="w-full p-2 bg-transparent border-none focus:outline-none resize-none" rows="10" readonly></textarea>
-                                <button id="copyToClipboardBtn" class="mt-2 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-300 text-sm">複製到剪貼簿</button>
-                            </div>
-                             <div id="errorDisplay" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mt-4 hidden" role="alert">
-                                <strong class="font-bold">錯誤！</strong>
-                                <span class="block sm:inline" id="errorMessage"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="eco" class="wave-content">
-                        <h3 class="text-2xl font-bold mb-4">平台中心化的弱化與生態分散化</h3>
-                        <p class="mb-4">過去，品牌爭相在 FB、IG 等大平台投放廣告，仰賴演算法給流量。未來，這種依賴將越來越危險，因為演算法一改，觸及就可能瞬間砍半。品牌必須建立自己的護城河。</p>
-                         <div class="grid md:grid-cols-3 gap-4 text-center">
-                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
-                                <div class="text-4xl mb-2">🏰</div>
-                                <h4 class="font-bold">建立私域資產</h4>
-                                <p class="text-sm">經營電子報、會員系統、專屬社群，將觸達權掌握在自己手上。</p>
-                            </div>
-                            <div class="bg-[#F5EFE6] p-4 rounded-lg">
-                                <div class="text-4xl mb-2">🔄</div>
-                                <h4 class="font-bold">多平台經營</h4>
-                                <p class="text-sm">分散風險，在不同平台使用不同語言溝通，而非簡單複製貼上。</p>
-                            </div>
-                             <div class="bg-[#F5EFE6] p-4 rounded-lg">
-                                <div class="text-4xl mb-2">📜</div>
-                                <h4 class="font-bold">內容轉譯</h4>
-                                <p class="text-sm">針對不同媒介特性，將核心訊息「翻譯」成短影音、長文、Podcast 等不同形式。</p>
-                            </div>
-                        </div>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-indigo-700 mb-3">三、故事設計（IP × 人性投射）</h4>
+                    <p class="text-xl font-medium text-gray-700 mb-3">架構：WWHHE</p>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>WHEN：從什麼時間點開始</li>
+                        <li>WHAT：發生了什麼事（痛點、困難）</li>
+                        <li>WHY Q：為什麼必須解決</li>
+                        <li>HOW：你是怎麼解決的</li>
+                        <li>END：最後得到什麼結果</li>
+                    </ul>
+                    <p class="text-xl font-medium text-gray-700 mt-6 mb-3">👉 套用範例（以甜點IP為例）：</p>
+                    <div class="bg-white p-4 rounded-lg border border-indigo-200 text-base sm:text-lg">
+                        <p><span class="font-semibold">WHEN</span>：當我第一次要設計月島甜點的時候</p>
+                        <p><span class="font-semibold">WHAT</span>：發現市場上甜點同質性太高，客人只看價格</p>
+                        <p><span class="font-semibold">WHY Q</span>：如果不找到差異化，我的品牌就會被淹沒</p>
+                        <p><span class="font-semibold">HOW</span>：於是我決定用「角色故事 + 情緒投射」來打造IP</p>
+                        <p><span class="font-semibold">END</span>：結果不只客人買甜點，更是因為故事與角色留下來</p>
                     </div>
                 </div>
-            </section>
 
-            <section id="strategy" class="content-section">
-                <div class="text-center mb-10">
-                    <h2 class="text-3xl font-bold text-[#A67B5B] mb-2">行銷人的生存地圖</h2>
-                    <p class="text-md text-gray-600 max-w-2xl mx-auto">總結來說，行銷的戰場已截然不同。留下來的，不會是花最多錢的人，而是懂得經營生態、適應變化的人。以下是三大核心策略建議，幫助您在未來五年穩定前行。</p>
+                <div>
+                    <h4 class="text-xl sm:text-2xl font-medium text-indigo-700 mb-3">四、語言技巧</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>專有名詞要減少：避免距離感</li>
+                        <li>形容詞動詞化：不是「專業的設計」，而是「設計讓你看見未來的家」</li>
+                        <li>語氣與聲調：重點詞放慢，收尾提高，讓情緒帶動成交</li>
+                    </ul>
                 </div>
-                <div class="grid md:grid-cols-3 gap-8">
-                    <div class="bg-white p-8 rounded-2xl shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
-                        <div class="text-5xl mb-4">👑</div>
-                        <h3 class="text-xl font-bold mb-2">別做平台的奴隸，要做關係的主人</h3>
-                        <p class="text-gray-600">演算法是別人的，顧客關係才是你的。優先經營可轉移的私域資產（如電子報、會員），確保你的觸達能力不會因平台變動而消失。</p>
-                    </div>
-                     <div class="bg-white p-8 rounded-2xl shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
-                        <div class="text-5xl mb-4">🗣️</div>
-                        <h3 class="text-xl font-bold mb-2">學會內容轉譯，而不是內容複製</h3>
-                        <p class="text-gray-600">每個媒介都有自己的語言。學會用短影音講故事，也要會用長文深入對話。讓你的訊息在任何場景都有效，與潛在用戶產生共鳴。</p>
-                    </div>
-                     <div class="bg-white p-8 rounded-2xl shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
-                        <div class="text-5xl mb-4">📊</div>
-                        <h3 class="text-xl font-bold mb-2">用數據與工具決策，而非憑直覺</h3>
-                        <p class="text-gray-600">學會用數據追蹤成效，熟悉能省時省力的數位工具。讓你的決策有憑有據，快速測試、快速調整，善用新工具應對變化。</p>
-                    </div>
+                <div class="bg-green-100 p-6 rounded-xl shadow-inner mt-8">
+                    <p class="text-xl sm:text-2xl font-semibold text-green-800">✅ 總結：一場演講的關鍵</p>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2 mt-3">
+                        <li>先想結尾 → 三大好處</li>
+                        <li>再設計主體 → 把專業翻成人話，結果導向</li>
+                        <li>最後鋪陳故事 → 讓客戶投射「我也能得到相同結果」</li>
+                    </ul>
                 </div>
-            </section>
-        </main>
+            </div>
+        </section>
 
-        <footer class="text-center mt-16 pt-8 border-t border-gray-200">
-            <p class="text-gray-500">這份互動式報告旨在將複雜的市場趨勢轉化為清晰的洞察與策略。</p>
-            <p class="text-sm text-gray-400 mt-2">資料來源：好廣告數據市場觀察報告</p>
-        </footer>
-    </div>
+        <!-- GIF Section 1 (between Day 1 and Day 2) -->
+        <section class="bg-white shadow-xl rounded-2xl p-8 md:p-12 mb-12 text-center">
+            <div class="flex flex-col items-center justify-center h-48 md:h-64">
+                <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExam91NXRrem1taTh2eTUyamt5MGVlejI1ejAwNnA0bXAzeGh6eHZsOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif" alt="Kiwimu IP 角色動畫" class="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full shadow-lg animate-float-subtle mb-4">
+                <div class="bg-white p-4 rounded-lg shadow-md text-base sm:text-lg font-semibold text-gray-800">
+                    收斂一下知識點 KIWIMU陪你思考
+                </div>
+            </div>
+        </section>
+
+        <!-- Day 2 Content -->
+        <section id="day2-overview" class="bg-white shadow-xl rounded-2xl p-8 md:p-12 mb-12">
+            <span class="anchor-offset" id="day2-anchor"></span>
+            <h2 class="text-3xl sm:text-4xl font-bold text-green-700 mb-8 pb-4 border-b-4 border-green-200">
+                📖 公眾演說千萬成交影響術 Day 2
+            </h2>
+
+            <!-- Section 1: 思維核心 -->
+            <div class="mb-10 p-6 bg-blue-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section1-day2"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-blue-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/60A5FA/FFFFFF?text=🧠" alt="Brain icon" class="mr-3">
+                    一、思維核心
+                </h3>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>知識的重量 × 行動的能量：學得越多，越能感覺自己的不足。真正有價值的不是知識本身，而是能否落地行動。</li>
+                    <li>定位與價值：「在其位，謀其政」：要先給自己一個位置（定位），市場才會給你價值。商業是市場的驗證。產品 / 服務只有被市場認可，才真正有意義。</li>
+                </ul>
+            </div>
+
+            <!-- Section 2: 專利與 IP -->
+            <div class="mb-10 p-6 bg-green-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section2-day2"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-green-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/34D399/FFFFFF?text=©️" alt="Copyright icon" class="mr-3">
+                    二、專利與 IP
+                </h3>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-green-700 mb-3">申請專利</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>國際專利一百萬美金（高昂成本）。</li>
+                        <li>原則：確定 IP 能產生價值 → 再去申請專利。</li>
+                        <li>例：新加坡國際專利授權案例。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xl sm:text-2xl font-medium text-green-700 mb-3">應用啟發</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>對於品牌 / IP，要先透過市場驗證價值（銷售、授權、合作）→ 再用專利 / 版權保護。</li>
+                        <li>避免「空燒錢」，確保投入有商業意義。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 3: 巨星行銷法 STAR(S) -->
+            <div class="mb-10 p-6 bg-yellow-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section3-day2"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-yellow-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/FCD34D/FFFFFF?text=⭐" alt="Star icon" class="mr-3">
+                    三、巨星行銷法 STAR(S)
+                </h3>
+                <p class="text-lg sm:text-xl font-medium text-gray-700 mb-4">營造百萬品牌的秘訣</p>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li><span class="font-semibold text-yellow-800">S – Social Media (社群媒體)</span>：建立社群影響力，持續曝光。</li>
+                    <li><span class="font-semibold text-yellow-800">T – Traditional Media (傳統媒體)</span>：
+                        <ul class="list-circle pl-6">
+                            <li>進入報章雜誌、電視等大眾媒體。</li>
+                            <li>傳統媒體帶來流量與「權威感」。</li>
+                            <li>用「謙虛地自誇」方式：讓別人替你曝光，而不是自己誇。</li>
+                        </ul>
+                    </li>
+                    <li><span class="font-semibold text-yellow-800">A – Author (作者身份)</span>：
+                        <ul class="list-circle pl-6">
+                            <li>出書是最強名片，擁有稀有的公信力與收藏價值。</li>
+                            <li>書籍是「權威象徵」＋「永久傳播工具」。</li>
+                            <li>方法：自己寫 / 編輯 / 設計 / 出版 / 推廣；集中火力在某一天製造「暢銷榜第一」效應；電子書可快速更新內容 → 高效率曝光。</li>
+                            <li>實戰話術：「你好，我是《XXX》這本書的作者，這本書最近成為 Amazon 暢銷榜第一名……」</li>
+                        </ul>
+                    </li>
+                    <li><span class="font-semibold text-yellow-800">R – 與巨星同行</span>：透過合作、同台、合影 → 轉嫁巨星光環。</li>
+                    <li><span class="font-semibold text-yellow-800">S – 成為講師（價值10萬美金的超級加速器）</span>：
+                        <ul class="list-circle pl-6">
+                            <li>站上舞台即是「身份地位」的象徵。</li>
+                            <li>透過講座可收名單、建立權威，而不是直接銷售。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Section 4: 關鍵字策略 -->
+            <div class="mb-10 p-6 bg-purple-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section4-day2"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-purple-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/A78BFA/FFFFFF?text=🔑" alt="Key icon" class="mr-3">
+                    四、關鍵字策略
+                </h3>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-purple-700 mb-3">1. 永久性關鍵字（長期價值）</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>國家、語言、藝術娛樂作品（電影、音樂、書籍）</li>
+                        <li>「如何」</li>
+                        <li>名人或明星名字</li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-purple-700 mb-3">2. 季節性關鍵字（提前佈局）</h4>
+                    <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-2">春節、聖誕節、情人節、生日、奧運、世界杯、考試、畢業季、選舉……</p>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>策略：事件發生之前就先布局，等事件爆發時收割流量。</li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-purple-700 mb-3">3. 煙花式關鍵字（短期爆發）</h4>
+                    <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-2">新冠病毒、AI演算法、元宇宙等</p>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>爆發快 → 消失快。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xl sm:text-2xl font-medium text-purple-700 mb-3">4. 應用原則</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>先做季節性 → 再做永久性 → 偶爾利用煙花式。</li>
+                        <li>精準比流量更重要。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 5: 媒體感知與說服 -->
+            <div class="mb-10 p-6 bg-red-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section5-day2"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-red-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/F87171/FFFFFF?text=👂" alt="Ear icon" class="mr-3">
+                    五、媒體感知與說服
+                </h3>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-4">媒體感知：訊息投放後，觀眾的感受才是重點。</p>
+                <p class="text-xl font-medium text-gray-700 mb-3">如何建立信任：</p>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>客觀且真實的角色形象。</li>
+                    <li>國際曝光（媒體、論壇）。</li>
+                    <li>與激勵人心的價值掛鉤。</li>
+                </ul>
+                <p class="text-xl font-medium text-gray-700 mt-6 mb-3">高流量文案公式 P.R.E.P</p>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li><span class="font-semibold text-red-800">Punch/Power</span> – 有力度的訊息</li>
+                    <li><span class="font-semibold text-red-800">Relatable</span> – 讓人感同身受</li>
+                    <li><span class="font-semibold text-red-800">Easy to understand</span> – 易懂</li>
+                    <li><span class="font-semibold text-red-800">Probability</span> – 提供可信概率 / 數據</li>
+                </ul>
+            </div>
+
+            <!-- Section 6: 價值階梯（Value Ladder） -->
+            <div class="mb-10 p-6 bg-blue-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section6-day2"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-blue-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/60A5FA/FFFFFF?text=📈" alt="Growth chart icon" class="mr-3">
+                    六、價值階梯（Value Ladder）
+                </h3>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-4">財富方程式 = 一對多影響 × 品牌</p>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li><span class="font-semibold text-blue-800">引流產品（$0）</span>：免費試用、社群體驗。</li>
+                    <li><span class="font-semibold text-blue-800">低價產品（無利產品）</span>：製造差異性，建立粉絲基礎。</li>
+                    <li><span class="font-semibold text-blue-800">中低價產品（微利產品）</span>：向上銷售 / 向下加購。</li>
+                    <li><span class="font-semibold text-blue-800">中高價產品（讓利產品）</span>：提供更多價值與差異化。</li>
+                    <li><span class="font-semibold text-blue-800">高價產品（結果導向）</span>：資源、人脈、專屬結果。適用於願意付出高成本的少數人。</li>
+                    <li><span class="font-semibold text-blue-800">最終極服務 = 培訓 / 教學</span>：讓客戶學會使用產品，並且願意持續付費。</li>
+                </ul>
+            </div>
+
+            <!-- Section 7: 如何為高價值服務定價 -->
+            <div class="mb-10 p-6 bg-orange-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section7-day2"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-orange-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/FB923C/FFFFFF?text=💲" alt="Dollar sign icon" class="mr-3">
+                    七、如何為高價值服務定價
+                </h3>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>參考產業標準。</li>
+                    <li>結果價值（幫助客戶省時間、省錢、省力，提升形象、權威、舒適、收入）。</li>
+                </ul>
+                <p class="text-xl font-medium text-gray-700 mt-6 mb-3">七大價值槓桿：</p>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>提升形象</li>
+                    <li>提升權威</li>
+                    <li>提升舒適感</li>
+                    <li>提升收入</li>
+                    <li>幫客戶省錢</li>
+                    <li>幫客戶省時間</li>
+                    <li>幫客戶省力</li>
+                </ul>
+            </div>
+
+            <!-- Section 8: 故事行銷術（Lion） -->
+            <div class="mb-10 p-6 bg-indigo-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section8-day2"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-indigo-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/818CF8/FFFFFF?text=🦁" alt="Lion icon" class="mr-3">
+                    八、故事行銷術（Lion）
+                </h3>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-indigo-700 mb-3">1. 畢卡索案例</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>自我宣傳：雇人製造「市場好奇心」。</li>
+                        <li>名人代言：用簽名支票取代現金。</li>
+                        <li>專業社交：用專業（畫肖像）交換人脈。</li>
+                        <li>創造競爭：資訊不對稱，製造抬價空間。</li>
+                        <li>異業結盟：跨界合作（芭蕾舞劇）。</li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h4 class="text-xl sm:text-2xl font-medium text-indigo-700 mb-3">2. 盈利故事架構</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>目標 → 阻礙 → 行動 → 結果</li>
+                        <li>強化版：目標 → 阻礙 → 努力 → 結果 → 意外轉彎 → 結局</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xl sm:text-2xl font-medium text-indigo-700 mb-3">3. 故事應該包含</h4>
+                    <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                        <li>情感色彩與感官細節</li>
+                        <li>三種層次：別人的故事（社會驗證）；自己的故事（真實案例）；團隊的故事（共同使命）</li>
+                        <li>三種時間：過去、現在、未來</li>
+                        <li>三種面向：失敗、成功、感動</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 9: 文化行銷 -->
+            <div class="p-6 bg-teal-50 rounded-xl shadow-md">
+                <span class="anchor-offset" id="section9-day2"></span>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-teal-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/2DD4BF/FFFFFF?text=🌐" alt="Globe icon" class="mr-3">
+                    九、文化行銷
+                </h3>
+                <ul class="list-disc pl-8 text-base sm:text-lg leading-relaxed text-gray-700 space-y-2">
+                    <li>對內行銷：讓團隊與內部人員理解品牌價值。</li>
+                    <li>對外行銷：一致對外，傳達同樣的文化與理念。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- GIF Section 2 (between Day 2 and Mindset Application) -->
+        <section class="bg-white shadow-xl rounded-2xl p-8 md:p-12 mb-12 text-center">
+            <div class="flex flex-col items-center justify-center h-48 md:h-64">
+                <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExam91NXRrem1taTh2eTUyamt5MGVlejI1ejAwNnA0bXAzeGh6eHZsOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif" alt="Kiwimu IP 角色動畫" class="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full shadow-lg animate-float-subtle mb-4">
+                <div class="bg-white p-4 rounded-lg shadow-md text-base sm:text-lg font-semibold text-gray-800">
+                    收斂一下知識點 KIWIMU陪你落地
+                </div>
+            </div>
+        </section>
+
+        <!-- New Section: 思維落地 -->
+        <section id="mindset-application" class="bg-white shadow-xl rounded-2xl p-8 md:p-12 mb-12">
+            <span class="anchor-offset" id="application-anchor"></span>
+            <h2 class="text-3xl sm:text-4xl font-bold text-purple-700 mb-8 pb-4 border-b-4 border-purple-200">
+                🚀 思維落地：將概念轉化為行動
+            </h2>
+            <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-8">
+                在這裡記下你的想法、計畫與執行細節，將課程中所學的思維與策略具體化！
+            </p>
+
+            <div class="mb-10 p-6 bg-purple-50 rounded-xl shadow-md">
+                <h3 class="text-2xl sm:text-3xl font-semibold text-purple-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/A78BFA/FFFFFF?text=📝" alt="Pen icon" class="mr-3">
+                    一、每日反思與規劃
+                </h3>
+                <div class="mb-4">
+                    <label for="reflection1" class="block text-xl font-medium text-purple-700 mb-2">
+                        設定清晰的「定位」目標：今天我要讓誰、因為什麼，而第一個想到我？
+                    </label>
+                    <textarea id="reflection1" name="reflection1" rows="3" class="w-full p-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：今天我要讓潛在客戶，因為我提供的獨特甜點體驗，而第一個想到 Kiwimu。"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="reflection2" class="block text-xl font-medium text-purple-700 mb-2">
+                        評估「自動運轉」的進度：有哪些環節可以被系統化或授權出去？
+                    </label>
+                    <textarea id="reflection2" name="reflection2" rows="3" class="w-full p-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：目前行銷內容產出過於依賴我個人，可以考慮尋找合作的文案寫手來系統化內容輸出。"></textarea>
+                </div>
+                <div>
+                    <label for="reflection3" class="block text-xl font-medium text-purple-700 mb-2">
+                        規劃「價值階梯」的下一步：如何增加引流點或更高價服務？
+                    </label>
+                    <textarea id="reflection3" name="reflection3" rows="3" class="w-full p-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：考慮推出免費的甜點製作小撇步電子書作為引流產品，並將現有的高階課程細分成更多客製化方案。"></textarea>
+                </div>
+            </div>
+
+            <div class="mb-10 p-6 bg-teal-50 rounded-xl shadow-md">
+                <h3 class="text-2xl sm:text-3xl font-semibold text-teal-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/2DD4BF/FFFFFF?text=📈" alt="Chart icon" class="mr-3">
+                    二、數據導向的行動
+                </h3>
+                <div class="mb-4">
+                    <label for="data1" class="block text-xl font-medium text-teal-700 mb-2">
+                        追蹤關鍵指標：CPC 和名單獲取率的當前狀態與目標？
+                    </label>
+                    <textarea id="data1" name="data1" rows="3" class="w-full p-3 border border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：目前 CPC 為 $5，目標降至 $3；名單獲取率 20%，目標提升至 35%。"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="data2" class="block text-xl font-medium text-teal-700 mb-2">
+                        小規模 A/B 測試計畫：打算如何進行測試？
+                    </label>
+                    <textarea id="data2" name="data2" rows="3" class="w-full p-3 border border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：針對社群廣告，測試兩種不同的主視覺和標題，觀察點擊率和名單獲取率的差異。"></textarea>
+                </div>
+                <div>
+                    <label for="data3" class="block text-xl font-medium text-teal-700 mb-2">
+                        優化銷售漏斗策略：如何改善轉換率最低的環節？
+                    </label>
+                    <textarea id="data3" name="data3" rows="3" class="w-full p-3 border border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：發現從電子報點擊到購買頁的轉換率較低，考慮優化購買頁面文案和增加限時優惠提醒。"></textarea>
+                </div>
+            </div>
+
+            <div class="mb-10 p-6 bg-amber-50 rounded-xl shadow-md">
+                <h3 class="text-2xl sm:text-3xl font-semibold text-amber-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/FCD34D/FFFFFF?text=🗣️" alt="Microphone icon" class="mr-3">
+                    三、演說實踐與故事力
+                </h3>
+                <div class="mb-4">
+                    <label for="speaking1" class="block text-xl font-medium text-amber-700 mb-2">
+                        練習「一句話自我介紹」：你的精煉介紹是什麼？
+                    </label>
+                    <textarea id="speaking1" name="speaking1" rows="3" class="w-full p-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：我幫助甜點愛好者，透過我的情緒甜點課程，重新連結內在情感，創造獨一無二的療癒體驗。"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="speaking2" class="block text-xl font-medium text-amber-700 mb-2">
+                        設計你的「WWHHE」故事：今天練習的痛點、解決方案、成果？
+                    </label>
+                    <textarea id="speaking2" name="speaking2" rows="3" class="w-full p-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：當我感到焦慮時，偶然發現烘焙能讓我平靜，於是決定深入研究情緒與甜點的連結，最終創造出 Kiwimu 品牌，幫助更多人在甜點中找到自我療癒。"></textarea>
+                </div>
+                <div>
+                    <label for="speaking3" class="block text-xl font-medium text-amber-700 mb-2">
+                        將專業「動詞化」：如何讓你的專業更易懂？
+                    </label>
+                    <textarea id="speaking3" name="speaking3" rows="3" class="w-full p-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：不是「專業的甜點製作」，而是「烘焙讓您學會傾聽內心的聲音」。"></textarea>
+                </div>
+            </div>
+
+            <div class="p-6 bg-lime-50 rounded-xl shadow-md">
+                <h3 class="text-2xl sm:text-3xl font-semibold text-lime-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/A3E635/FFFFFF?text=🤝" alt="Handshake icon" class="mr-3">
+                    四、連結與擴散
+                </h3>
+                <div class="mb-4">
+                    <label for="connect1" class="block text-xl font-medium text-lime-700 mb-2">
+                        尋找合作機會：誰是你的「巨星」？合作計畫？
+                    </label>
+                    <textarea id="connect1" name="connect1" rows="3" class="w-full p-3 border border-lime-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：尋找知名的心靈成長導師合作，共同舉辦一場結合甜點與冥想的工作坊，擴大品牌影響力。"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="connect2" class="block text-xl font-medium text-lime-700 mb-2">
+                        佈局關鍵字：想圍繞哪些關鍵字創造內容？
+                    </label>
+                    <textarea id="connect2" name="connect2" rows="3" class="w-full p-3 border border-lime-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：長期佈局「療癒甜點」、「情緒烘焙」等關鍵字，並在母親節前提前佈局「母親節蛋糕送禮推薦」等季節性關鍵字。"></textarea>
+                </div>
+                <div>
+                    <label for="connect3" class="block text-xl font-medium text-lime-700 mb-2">
+                        文化行銷從小處做起：如何體現品牌價值和願景？
+                    </label>
+                    <textarea id="connect3" name="connect3" rows="3" class="w-full p-3 border border-lime-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="說明及範例：確保所有社群貼文、客服對話都傳達 Kiwimu 「透過甜點傳遞溫暖與陪伴」的品牌精神。"></textarea>
+                </div>
+            </div>
+
+            <!-- Download Button -->
+            <div class="text-center mt-12 mb-10">
+                <button id="downloadNotes" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105 inline-flex items-center text-xl">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    下載我的思維筆記
+                </button>
+            </div>
+
+            <!-- Gemini API Feature: Speech Draft Optimizer -->
+            <div class="p-6 bg-pink-50 rounded-xl shadow-md mb-10">
+                <h3 class="text-2xl sm:text-3xl font-semibold text-pink-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/EC4899/FFFFFF?text=✨" alt="Sparkle icon" class="mr-3">
+                    演講稿優化器 ✨
+                </h3>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-4">
+                    輸入你的演講核心訊息或草稿，讓 Gemini 專家為你提供優化建議，使演講更具影響力！
+                </p>
+                <div class="mb-4">
+                    <label for="speechInput" class="block text-xl font-medium text-pink-700 mb-2">
+                        輸入你的演講內容：
+                    </label>
+                    <textarea id="speechInput" rows="6" class="w-full p-3 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="例如：我的產品能解決客戶的時間管理問題，讓他們有更多時間陪伴家人。"></textarea>
+                </div>
+                <div class="text-center mb-6">
+                    <button id="optimizeSpeechBtn" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105 inline-flex items-center text-lg">
+                        <img src="https://placehold.co/24x24/FFFFFF/EC4899?text=✨" alt="Sparkle icon" class="w-6 h-6 mr-2">
+                        優化我的演講稿
+                    </button>
+                </div>
+                <div id="loadingIndicator" class="text-center text-pink-700 font-medium hidden mb-4">
+                    優化中，請稍候...
+                </div>
+                <div id="speechOutput" class="p-4 bg-pink-100 border border-pink-300 rounded-lg text-base sm:text-lg text-gray-800 leading-relaxed min-h-[100px] overflow-auto">
+                    <!-- Optimized speech will be displayed here -->
+                    <p class="text-gray-500">優化後的演講稿將顯示在此。</p>
+                </div>
+            </div>
+
+            <!-- Gemini API Feature: Content Idea Generator -->
+            <div class="p-6 bg-indigo-50 rounded-xl shadow-md">
+                <h3 class="text-2xl sm:text-3xl font-semibold text-indigo-600 mb-4 flex items-center">
+                    <img src="https://placehold.co/40x40/6366F1/FFFFFF?text=✨" alt="Sparkle icon" class="mr-3">
+                    內容發想生成器 ✨
+                </h3>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-4">
+                    輸入一個主題，讓 Gemini 為您產生多個內容點子，可用於演講、社群或部落格文章！
+                </p>
+                <div class="mb-4">
+                    <label for="contentTopicInput" class="block text-xl font-medium text-indigo-700 mb-2">
+                        輸入內容主題：
+                    </label>
+                    <textarea id="contentTopicInput" rows="3" class="w-full p-3 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base sm:text-lg resize-y bg-gray-100" placeholder="例如：如何透過甜點建立個人品牌？"></textarea>
+                </div>
+                <div class="text-center mb-6">
+                    <button id="generateContentIdeasBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105 inline-flex items-center text-lg">
+                        <img src="https://placehold.co/24x24/FFFFFF/6366F1?text=✨" alt="Sparkle icon" class="w-6 h-6 mr-2">
+                        生成內容點子
+                    </button>
+                </div>
+                <div id="contentLoadingIndicator" class="text-center text-indigo-700 font-medium hidden mb-4">
+                    生成中，請稍候...
+                </div>
+                <div id="contentIdeasOutput" class="p-4 bg-indigo-100 border border-indigo-300 rounded-lg text-base sm:text-lg text-gray-800 leading-relaxed min-h-[100px] overflow-auto">
+                    <!-- Generated content ideas will be displayed here -->
+                    <p class="text-gray-500">生成的內容點子將顯示在此。</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12 rounded-t-xl">
+        <div class="container mx-auto px-4 text-center text-gray-400">
+            <p>&copy; 2025 公眾演說千萬成交影響術. All rights reserved.</p>
+            <p class="mt-2">網站內容僅供學習交流，實際應用請謹慎評估。</p>
+            <p class="mt-4 text-sm">製作者: PEN SO NOTE</p>
+            <p class="text-sm">LINE ID: kk4e18</p>
+        </div>
+    </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const navButtons = document.querySelectorAll('.nav-button');
-            const contentSections = document.querySelectorAll('.content-section');
-            const waveTabs = document.querySelectorAll('.wave-tab');
-            const waveContents = document.querySelectorAll('.wave-content');
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
 
-            // Gemini API elements
-            const marketingContentInput = document.getElementById('marketingContentInput');
-            const targetPlatformSelect = document.getElementById('targetPlatformSelect');
-            const generateContentBtn = document.getElementById('generateContentBtn');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            const generatedContentOutput = document.getElementById('generatedContentOutput');
-            const generatedContentTextarea = document.getElementById('generatedContentTextarea');
-            const copyToClipboardBtn = document.getElementById('copyToClipboardBtn');
-            const errorDisplay = document.getElementById('errorDisplay');
-            const errorMessage = document.getElementById('errorMessage');
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
 
+                if (targetElement) {
+                    const headerOffset = document.querySelector('header').offsetHeight; // Get height of fixed header
+                    const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+                    const offsetPosition = elementPosition - headerOffset - 20; // Additional padding
 
-            const chartFontColor = '#4A4A4A';
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                    });
+                }
+            });
+        });
 
-            function wrapText(text, maxLen) {
-                if (typeof text !== 'string') return [text];
-                const words = text.split(' ');
-                const lines = [];
-                let currentLine = '';
-                words.forEach(word => {
-                    if ((currentLine + word).length > maxLen) {
-                        lines.push(currentLine.trim());
-                        currentLine = '';
-                    }
-                    currentLine += word + ' ';
-                });
-                lines.push(currentLine.trim());
-                return lines;
+        // Download functionality for the "思維落地" notes
+        document.getElementById('downloadNotes').addEventListener('click', function() {
+            let notesContent = "公眾演說千萬成交影響術 - 思維落地筆記\n\n";
+
+            // Helper function to get text from a textarea
+            const getTextareaValue = (id, title) => {
+                const textarea = document.getElementById(id);
+                if (textarea && textarea.value.trim() !== "") {
+                    return `### ${title}\n${textarea.value.trim()}\n\n`;
+                }
+                return "";
+            };
+
+            // Section: 一、每日反思與規劃
+            notesContent += "一、每日反思與規劃\n\n";
+            notesContent += getTextareaValue('reflection1', '設定清晰的「定位」目標');
+            notesContent += getTextareaValue('reflection2', '評估「自動運轉」的進度');
+            notesContent += getTextareaValue('reflection3', '規劃「價值階梯」的下一步');
+
+            // Section: 二、數據導向的行動
+            notesContent += "二、數據導向的行動\n\n";
+            notesContent += getTextareaValue('data1', '追蹤關鍵指標');
+            notesContent += getTextareaValue('data2', '小規模 A/B 測試計畫');
+            notesContent += getTextareaValue('data3', '優化銷售漏斗策略');
+
+            // Section: 三、演說實踐與故事力
+            notesContent += "三、演說實踐與故事力\n\n";
+            notesContent += getTextareaValue('speaking1', '練習「一句話自我介紹」');
+            notesContent += getTextareaValue('speaking2', '設計你的「WWHHE」故事');
+            notesContent += getTextareaValue('speaking3', '將專業「動詞化」');
+
+            // Section: 四、連結與擴散
+            notesContent += "四、連結與擴散\n\n";
+            notesContent += getTextareaValue('connect1', '尋找合作機會');
+            notesContent += getTextareaValue('connect2', '佈局關鍵字');
+            notesContent += getTextareaValue('connect3', '文化行銷從小處做起');
+
+            // Create a Blob and download it
+            const blob = new Blob([notesContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '思維落地筆記_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.txt'; // Example: 思維落地筆記_20250824.txt
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Gemini API integration for Speech Draft Optimizer
+        document.getElementById('optimizeSpeechBtn').addEventListener('click', async function() {
+            const speechInput = document.getElementById('speechInput').value;
+            const speechOutput = document.getElementById('speechOutput');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            if (speechInput.trim() === "") {
+                speechOutput.innerHTML = '<p class="text-red-500">請輸入你的演講內容！</p>';
+                return;
             }
 
-            const chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: chartFontColor,
-                            font: {
-                                family: "'Noto Sans TC', sans-serif"
-                            }
-                        }
-                    },
-                    tooltip: {
-                        titleFont: {
-                            family: "'Noto Sans TC', sans-serif"
-                        },
-                        bodyFont: {
-                            family: "'Noto Sans TC', sans-serif"
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: {
-                            color: chartFontColor,
-                            font: {
-                                family: "'Noto Sans TC', sans-serif"
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: chartFontColor,
-                            font: {
-                                family: "'Noto Sans TC', sans-serif" // Corrected typo here
-                            }
-                        },
-                         grid: {
-                            color: '#E5E7EB'
-                        }
-                    }
-                }
-            };
+            loadingIndicator.classList.remove('hidden');
+            speechOutput.innerHTML = ''; // Clear previous output
 
-            const costVsCtrData = {
-                labels: ['三年前', '兩年前', '一年前', '現在'],
-                datasets: [{
-                    label: '廣告成本指數',
-                    type: 'bar',
-                    data: [100, 115, 130, 140],
-                    backgroundColor: 'rgba(166, 123, 91, 0.6)',
-                    borderColor: 'rgba(166, 123, 91, 1)',
-                    borderWidth: 1,
-                    yAxisID: 'y'
-                }, {
-                    label: '點擊率指數',
-                    type: 'line',
-                    data: [100, 90, 82, 75],
-                    borderColor: '#6B7280',
-                    backgroundColor: 'rgba(107, 114, 128, 0.1)',
-                    tension: 0.3,
-                    fill: true,
-                    yAxisID: 'y1'
-                }]
-            };
+            let chatHistory = [];
+            const prompt = `作為一位公眾演說專家，請根據公眾演說的原則，優化以下演講核心訊息或草稿，使其更具影響力、說服力，並增加情感連結。請提供改進後的版本和簡要說明其優化點，並用中文(繁體)回應。
 
-            new Chart(document.getElementById('costVsCtrChart'), {
-                type: 'bar',
-                data: costVsCtrData,
-                options: { ...chartOptions,
-                    scales: {
-                        ...chartOptions.scales,
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: { display: true, text: '成本指數', color: chartFontColor }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: { display: true, text: '點擊率指數', color: chartFontColor },
-                            grid: { drawOnChartArea: false }
-                        }
-                    }
-                }
-            });
+演講內容：
+${speechInput}`;
 
-            const adBlockerData = {
-                labels: ['2018', '2020', '2022', '2024'],
-                datasets: [{
-                    label: '全球廣告攔截工具用戶 (億)',
-                    data: [6.15, 7.81, 8.43, 9.12],
-                    borderColor: '#A67B5B',
-                    backgroundColor: 'rgba(166, 123, 91, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            };
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // If you want to use models other than gemini-2.5-flash-preview-05-20 or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
-            new Chart(document.getElementById('adBlockerChart'), {
-                type: 'line',
-                data: adBlockerData,
-                options: chartOptions
-            });
-            
-            const aiImpactData = {
-                labels: ['來自 AI 摘要的直接答案', '傳統自然搜尋點擊'],
-                datasets: [{
-                    label: '流量來源預測',
-                    data: [50, 50],
-                    backgroundColor: [
-                        'rgba(166, 123, 91, 0.7)',
-                        'rgba(209, 213, 219, 0.7)'
-                    ],
-                    borderColor: [
-                        '#A67B5B',
-                        '#D1D5DB'
-                    ],
-                    borderWidth: 1
-                }]
-            };
+            let retries = 0;
+            const maxRetries = 5;
+            const initialDelay = 1000; // 1 second
 
-            new Chart(document.getElementById('aiImpactChart'), {
-                type: 'doughnut',
-                data: aiImpactData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: chartFontColor,
-                                font: {
-                                    family: "'Noto Sans TC', sans-serif"
-                                },
-                                padding: 20,
-                                generateLabels: function(chart) {
-                                    const data = chart.data;
-                                    if (data.labels.length && data.datasets.length) {
-                                        return data.labels.map(function(label, i) {
-                                            const meta = chart.getDatasetMeta(0);
-                                            const style = meta.controller.getStyle(i);
-                                            return {
-                                                text: wrapText(label, 16).join('\n'),
-                                                fillStyle: style.backgroundColor,
-                                                strokeStyle: style.borderColor,
-                                                lineWidth: style.borderWidth,
-                                                hidden: isNaN(data.datasets[0].data[i]) || meta.data[i].hidden,
-                                                index: i
-                                            };
-                                        });
-                                    }
-                                    return [];
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed !== null) {
-                                        label += context.parsed + '%';
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-
-            navButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    navButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-
-                    contentSections.forEach(section => {
-                        section.classList.remove('active');
+            async function callGeminiApi() {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
                     });
-                    document.getElementById(button.dataset.target).classList.add('active');
-                });
-            });
 
-            waveTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    waveTabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`API error: ${response.status} - ${errorData.error.message}`);
+                    }
 
-                    waveContents.forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    document.getElementById(tab.dataset.wave).classList.add('active');
-                });
-            });
+                    const result = await response.json();
 
-            // Gemini API Integration Logic
-            generateContentBtn.addEventListener('click', async () => {
-                const marketingContent = marketingContentInput.value.trim();
-                const targetPlatform = targetPlatformSelect.value;
-                
-                if (!marketingContent) {
-                    errorMessage.textContent = '請輸入您要轉譯的行銷內容。';
-                    errorDisplay.classList.remove('hidden');
-                    generatedContentOutput.classList.add('hidden');
-                    return;
-                }
-
-                errorDisplay.classList.add('hidden');
-                loadingSpinner.classList.remove('hidden');
-                generatedContentOutput.classList.add('hidden');
-                generatedContentTextarea.value = '';
-
-                let prompt = '';
-                switch (targetPlatform) {
-                    case 'social_media':
-                        prompt = `請將以下行銷內容改寫成一篇簡潔、有吸引力且適合社群媒體（如 Facebook 或 Instagram）的貼文，語氣應當活潑並包含表情符號：\n\n"${marketingContent}"`;
-                        break;
-                    case 'email_draft':
-                        prompt = `請將以下行銷內容改寫成一封正式且資訊豐富的電子郵件草稿，適合發送給潛在客戶或合作夥伴：\n\n"${marketingContent}"`;
-                        break;
-                    case 'blog_post':
-                        prompt = `請將以下行銷內容改寫成一個深入且引人入勝的部落格文章段落，旨在教育讀者並建立品牌信任：\n\n"${marketingContent}"`;
-                        break;
-                    case 'concise_summary':
-                        prompt = `請將以下行銷內容提取出最簡潔的重點摘要：\n\n"${marketingContent}"`;
-                        break;
-                    default:
-                        prompt = `請將以下行銷內容進行優化與改寫：\n\n"${marketingContent}"`;
-                }
-
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-                const MAX_RETRIES = 3;
-                let retries = 0;
-                let success = false;
-
-                while (retries < MAX_RETRIES && !success) {
-                    try {
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-
-                        const result = await response.json();
-                        
-                        if (result.candidates && result.candidates.length > 0 &&
-                            result.candidates[0].content && result.candidates[0].content.parts &&
-                            result.candidates[0].content.parts.length > 0) {
-                            const text = result.candidates[0].content.parts[0].text;
-                            generatedContentTextarea.value = text;
-                            generatedContentOutput.classList.remove('hidden');
-                            success = true;
-                        } else {
-                            throw new Error('API 回應結構不符預期或內容缺失。');
-                        }
-                    } catch (error) {
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        speechOutput.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`; // Display the response, preserve newlines
+                    } else {
+                        speechOutput.innerHTML = '<p class="text-gray-500">未能從 Gemini 獲取有效的優化建議，請再試一次。</p>';
+                    }
+                } catch (error) {
+                    console.error("Gemini API call failed:", error);
+                    if (retries < maxRetries) {
                         retries++;
-                        if (retries < MAX_RETRIES) {
-                            const delay = Math.pow(2, retries) * 1000; // Exponential backoff
-                            await new Promise(res => setTimeout(res, delay));
-                        } else {
-                            errorMessage.textContent = `生成內容失敗：${error.message}。請稍後再試。`;
-                            errorDisplay.classList.remove('hidden');
-                        }
-                    } finally {
-                        loadingSpinner.classList.add('hidden');
+                        const delay = initialDelay * Math.pow(2, retries - 1);
+                        // console.log(`Retrying in ${delay / 1000} seconds... (Attempt ${retries})`);
+                        await new Promise(res => setTimeout(res, delay));
+                        return callGeminiApi(); // Retry the API call
+                    } else {
+                        speechOutput.innerHTML = `<p class="text-red-500">優化演講稿失敗，請檢查您的網路連線或稍後再試。錯誤: ${error.message}</p>`;
                     }
+                } finally {
+                    loadingIndicator.classList.add('hidden');
                 }
-            });
+            }
 
-            // Copy to clipboard functionality
-            copyToClipboardBtn.addEventListener('click', () => {
-                generatedContentTextarea.select();
-                document.execCommand('copy');
-                copyToClipboardBtn.textContent = '已複製！';
-                setTimeout(() => {
-                    copyToClipboardBtn.textContent = '複製到剪貼簿';
-                }, 2000);
-            });
+            callGeminiApi();
+        });
+
+        // Gemini API integration for Content Idea Generator
+        document.getElementById('generateContentIdeasBtn').addEventListener('click', async function() {
+            const contentTopicInput = document.getElementById('contentTopicInput').value;
+            const contentIdeasOutput = document.getElementById('contentIdeasOutput');
+            const contentLoadingIndicator = document.getElementById('contentLoadingIndicator');
+
+            if (contentTopicInput.trim() === "") {
+                contentIdeasOutput.innerHTML = '<p class="text-red-500">請輸入內容主題！</p>';
+                return;
+            }
+
+            contentLoadingIndicator.classList.remove('hidden');
+            contentIdeasOutput.innerHTML = ''; // Clear previous output
+
+            let chatHistory = [];
+            const prompt = `作為一位內容策略專家，請根據公眾演說和品牌行銷的原則，為以下主題生成多個內容點子。這些點子可以包括演講主題、社群媒體貼文、部落格文章、影片內容等，並附上簡要說明其發想方向。請用中文(繁體)回應。
+
+內容主題：
+${contentTopicInput}`;
+
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // If you want to use models other than gemini-2.5-flash-preview-05-20 or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            let retries = 0;
+            const maxRetries = 5;
+            const initialDelay = 1000; // 1 second
+
+            async function callGeminiApi() {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`API error: ${response.status} - ${errorData.error.message}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        contentIdeasOutput.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`; // Display the response, preserve newlines
+                    } else {
+                        contentIdeasOutput.innerHTML = '<p class="text-gray-500">未能從 Gemini 獲取有效的內容點子，請再試一次。</p>';
+                    }
+                } catch (error) {
+                    console.error("Gemini API call failed:", error);
+                    if (retries < maxRetries) {
+                        retries++;
+                        const delay = initialDelay * Math.pow(2, retries - 1);
+                        // console.log(`Retrying in ${delay / 1000} seconds... (Attempt ${retries})`);
+                        await new Promise(res => setTimeout(res, delay));
+                        return callGeminiApi(); // Retry the API call
+                    } else {
+                        contentIdeasOutput.innerHTML = `<p class="text-red-500">生成內容點子失敗，請檢查您的網路連線或稍後再試。錯誤: ${error.message}</p>`;
+                    }
+                } finally {
+                    contentLoadingIndicator.classList.add('hidden');
+                }
+            }
+
+            callGeminiApi();
         });
     </script>
 </body>
